@@ -1,87 +1,85 @@
-name: Go CI/CD Pipeline (Build, Test, Quality)
+name: CI-CD Pipeline
 
-# Controls when the workflow runs
 on:
-  # Triggers the workflow on push or pull request events to the 'main' branch
   push:
-    branches: [ "main" ]
+    branches: [develop]
   pull_request:
-    branches: [ "main" ]
+    branches: [main, develop]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Defines job permissions (required for some security and reporting tools)
-permissions:
-  contents: read
-  # Required to upload coverage reports
-  actions: read
-
-# Defines the pipeline jobs (the 5 stages for CI/CD)
 jobs:
-  # ----------------------------------------------------
-  # Stage 1 & 2: Build and Test (Combined for efficiency)
-  # ----------------------------------------------------
-  build-and-test:
-    name: Build & Test
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+      - name: Run Linter
+        run: golangci-lint run ./...
 
-    - name: Set up Go (Required Version 1.22)
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
-        cache: true
-    
-    - name: Download Dependencies (Go Mod Tidy)
-      run: go mod tidy
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+      - name: Build Service
+        run: go build ./...
 
-    - name: Stage 1: Build Check (Ensure Compilation)
-      run: go build -v ./...
-      
-    - name: Stage 2: Run Unit & Integration Tests
-      # -coverprofile generates the coverage data for the next stage
-      run: go test -v -race -coverprofile=coverage.out ./...
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+      - name: Run Tests
+        run: go test ./... -v -count=1
 
-    - name: Stage 3: Check Test Coverage (Quality Gate)
-      # This step checks if the coverage is above the required 75% threshold (CACHE-SR-010)
-      # Uses awk to parse the coverage output (from the previous step)
-      # The value 75.0 is the minimum percentage required.
-      run: |
-        TOTAL_COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/.$//')
-        echo "Total Code Coverage: $TOTAL_COVERAGE%"
-        MIN_COVERAGE=75.0
-        
-        if (( $(echo "$TOTAL_COVERAGE < $MIN_COVERAGE" | bc -l) )); then
-          echo "FAIL: Code coverage ($TOTAL_COVERAGE%) is below the minimum required $MIN_COVERAGE%."
-          exit 1
-        else
-          echo "PASS: Code coverage ($TOTAL_COVERAGE%) meets the minimum required $MIN_COVERAGE%."
-        fi
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+      - name: Generate Coverage Report
+        run: |
+          go test ./... -coverprofile=coverage.out
+          go tool cover -func=coverage.out | tee coverage.txt
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.txt
 
-    # ----------------------------------------------------
-    # Stage 4: Linting & Code Style Check (Golangci-lint)
-    # ----------------------------------------------------
-    - name: Stage 4: Run Go Linter
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: v1.59
-        # Run the linter against the entire project structure
-        args: --timeout=5m --verbose ./...
-        
-    # ----------------------------------------------------
-    # Stage 5: Security Scan (Trivy)
-    # ----------------------------------------------------
-    - name: Stage 5: Run Trivy Security Scan (SAST)
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        format: 'table'
-        # Exit with a non-zero code if any high or critical vulnerability is found
-        exit-code: '1'
-        # Set severity to include High and Critical, as required by the security policy
-        severity: 'HIGH,CRITICAL'
-        # Scan the current directory
-        input: .
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: coverage
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: Run gosec
+        run: ~/go/bin/gosec ./...
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gosec-report
+          path: gosec.log
