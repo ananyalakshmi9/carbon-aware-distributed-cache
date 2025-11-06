@@ -21,6 +21,7 @@ This repository contains the source code and documentation for the Simple Cachin
 - [@nidhi-c-r](https://github.com/nidhi-c-r) - Developer Team
 - [@AmruthaPJ](https://github.com/AmruthaPJ) - Developer Team
 - [@ananyaac2104](https://github.com/ananyaac2104) - Developer Team
+- [@kusumita](https://github.com/pes2ug22cs278) - Developer Team
 
 ## 👨‍🏫 Teaching Assistant
 
