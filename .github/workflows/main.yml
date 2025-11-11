@@ -2,9 +2,9 @@ name: CI-CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   build:
@@ -59,18 +59,3 @@ jobs:
           else
             echo "No package.json found, skipping security audit"
           fi
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Deploy to staging
-        run: echo "Deploying to staging environment..."
-        
-      - name: Run integration tests
-        run: echo "Running integration tests..."
-        
-      - name: Deploy to production
-        run: echo "Deploying to production environment..."
