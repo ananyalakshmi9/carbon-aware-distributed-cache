@@ -13,7 +13,7 @@ const cache = new Cache();
 // SCRUM-12: Health Endpoint
 // ---------------------------------------------
 app.get("/health", (req, res) => {
-  return res.status(200).json({
+  res.status(200).json({
     status: "ok",
     service: "simple-cache",
     timestamp: new Date().toISOString(),
@@ -32,7 +32,7 @@ app.get("/v1/cache/:key", (req, res) => {
     return res.status(404).json({ error: "Key not found" });
   }
 
-  return res.status(200).json({ key, value });
+  res.status(200).json({ key, value });
 });
 
 // ---------------------------------------------
@@ -47,7 +47,7 @@ app.delete("/v1/cache/:key", (req, res) => {
     return res.status(404).json({ error: "Key not found" });
   }
 
-  return res.status(200).json({ message: "Key deleted", key });
+  res.status(200).json({ message: "Key deleted", key });
 });
 
 // ---------------------------------------------
@@ -55,10 +55,10 @@ app.delete("/v1/cache/:key", (req, res) => {
 // ---------------------------------------------
 app.get("/metrics", (req, res) => {
   res.status(200).json({
-    hits: cache.hits,
-    misses: cache.misses,
-    items: Object.keys(cache.store).length,
-    expired: cache.expired,
+    hits: cache.hits || 0,
+    misses: cache.misses || 0,
+    items: Object.keys(cache.store || {}).length,
+    expired: cache.expired || 0,
   });
 });
 
