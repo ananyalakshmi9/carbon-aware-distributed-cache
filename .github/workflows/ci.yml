@@ -1,115 +1,96 @@
-name: CI/CD Pipeline
+name: CI
 
-on:
-  push:
-    branches: [ develop ]
-  pull_request:
-    branches: [ develop ]
+on: [push, pull_request]
 
 jobs:
-
-  # ---------------------------------
-  # 1️⃣ INSTALL STAGE
-  # ---------------------------------
-  install:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install Backend Dependencies
-        run: |
-          cd src/backend
-          npm ci
-
-      - name: Install Frontend Dependencies
-        run: |
-          cd src/frontend
-          npm ci
-
-  # ---------------------------------
-  # 2️⃣ LINT STAGE
-  # ---------------------------------
-  lint:
-    runs-on: ubuntu-latest
-    needs: install
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Run ESLint (backend only)
-        run: |
-          cd src/backend
-          npm ci
-          npx eslint . --ext .js || true
-
-  # ---------------------------------
-  # 3️⃣ BUILD STAGE
-  # ---------------------------------
   build:
     runs-on: ubuntu-latest
-    needs: lint
+    strategy:
+      matrix:
+        node-version: [18.x]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
 
-      - name: Build Frontend
-        run: |
-          cd src/frontend
-          npm ci
-          npm run build
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci
 
-  # ---------------------------------
-  # 4️⃣ TEST STAGE
-  # ---------------------------------
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
   test:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-
-      - name: Install + Run Backend Tests with Coverage
-        run: |
-          cd src/backend
-          npm ci
-          npm test -- --runInBand --coverage
-
-      - name: Upload Coverage Report
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test --silent
+      - name: Run coverage
+        working-directory: backend
+        run: npm run coverage --silent
+      - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
-          name: backend-coverage
-          path: src/backend/coverage
+          name: coverage-report
+          path: backend/coverage
 
-  # ---------------------------------
-  # 5️⃣ PACKAGE STAGE
-  # ---------------------------------
-  package:
-    runs-on: ubuntu-latest
+  lint:
     needs: test
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Run eslint
+        working-directory: backend
+        run: npm run lint
 
-      - name: Create Deployment Package
+  security:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: npm audit
+        working-directory: backend
+        run: npm audit --audit-level=high || true
+      - name: Upload security report
+        run: npm audit --json > security-report.json || true
+      - uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.json
+
+  package:
+    needs: [build, test, lint, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create artifact
         run: |
           mkdir deployment
-          cp -r src/backend deployment/backend
-          cp -r src/frontend deployment/frontend
-          zip -r deployment.zip deployment
-
-      - name: Upload Deployment Artifact
+          cp -r backend deployment/backend
+          cp -r frontend deployment/frontend
+          cp -r .github deployment/.github
+          zip -r deployment-package.zip deployment
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: deployment-package
-          path: deployment.zip
+          path: deployment-package.zip
