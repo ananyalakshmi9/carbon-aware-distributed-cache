@@ -1,6 +1,6 @@
 class Cache {
   constructor() {
-    this.store = {};      // { key: { value } }
+    this.store = {};
     this.hits = 0;
     this.misses = 0;
     this.expired = 0;
