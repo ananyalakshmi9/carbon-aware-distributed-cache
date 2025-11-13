@@ -12,7 +12,7 @@ describe("SCRUM-13 & SCRUM-14 Cache Tests", () => {
     expect(res.body.value).toBe("hello");
   });
 
-  test("Retrieve non-existent key returns 404", async () => {
+  test("Retrieve non-existent key", async () => {
     const res = await request(app).get("/v1/cache/unknownKey");
     expect(res.status).toBe(404);
   });
@@ -25,8 +25,8 @@ describe("SCRUM-13 & SCRUM-14 Cache Tests", () => {
     expect(res.body.key).toBe("delKey");
   });
 
-  test("Delete non-existent key returns 404", async () => {
-    const res = await request(app).delete("/v1/cache/doesNotExist");
+  test("Delete non-existent key", async () => {
+    const res = await request(app).delete("/v1/cache/nope");
     expect(res.status).toBe(404);
   });
 
