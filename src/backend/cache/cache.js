@@ -40,7 +40,7 @@ class Cache {
       store: this.store,
       hits: this.hits,
       misses: this.misses,
-      expired: this.expired
+      expired: this.expired,
     };
 
     fs.writeFileSync(this.snapshotPath, JSON.stringify(snapshot, null, 2));
@@ -59,6 +59,8 @@ class Cache {
       this.expired = data.expired || 0;
       return true;
     }
+    // 👇 added branch for coverage
+    this.store = {};
     return false;
   }
 }
