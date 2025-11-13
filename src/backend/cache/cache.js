@@ -1,18 +1,24 @@
+// ---------------------------------------------
+// Simple In-Memory Cache Class
+// ---------------------------------------------
+
 class Cache {
   constructor() {
-    this.store = {};
-  }
-
-  get(key) {
-    return this.store[key] ?? null;
+    this.store = new Map();
   }
 
   set(key, value) {
-    this.store[key] = value;
+    this.store.set(key, value);
+  }
+
+  get(key) {
+    return this.store.has(key) ? this.store.get(key) : null;
   }
 
   delete(key) {
-    delete this.store[key];
+    if (!this.store.has(key)) return false;
+    this.store.delete(key);
+    return true;
   }
 }
 
