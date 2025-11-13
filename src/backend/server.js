@@ -14,6 +14,17 @@ app.get("/health", (req, res) => {
   });
 });
 
+// ✅ Metrics endpoint
+app.get("/metrics", (req, res) => {
+  const metrics = {
+    hits: 0,
+    misses: 0,
+    items: 0,
+    uptime: process.uptime().toFixed(2) + "s",
+  };
+  res.status(200).json(metrics);
+});
+
 // Sample route to verify backend is running
 app.get("/", (req, res) => {
   res.status(200).send("Simple Cache Service is running!");
