@@ -55,4 +55,35 @@ describe("Cache Logic – Unit Tests", () => {
     cache.get("3");
     expect(cache.misses).toBe(3);
   });
+
+  // 🔥 NEW TESTS BELOW (for full branch coverage)
+
+  test("Should overwrite existing key", () => {
+    cache.set("a", "1");
+    cache.set("a", "2");
+    expect(cache.get("a")).toBe("2");
+  });
+
+  test("Overwriting a key should not increase hits", () => {
+    cache.set("k", "v1");
+    cache.set("k", "v2");
+    expect(cache.hits).toBe(0);
+  });
+
+  test("Deleting a key reduces total items", () => {
+    cache.set("a", "1");
+    expect(Object.keys(cache.store).length).toBe(1);
+
+    cache.delete("a");
+    expect(Object.keys(cache.store).length).toBe(0);
+  });
+
+  test("Get after delete should count as miss", () => {
+    cache.set("a", "1");
+    cache.delete("a");
+
+    const value = cache.get("a");
+    expect(value).toBe(null);
+    expect(cache.misses).toBe(1);
+  });
 });
