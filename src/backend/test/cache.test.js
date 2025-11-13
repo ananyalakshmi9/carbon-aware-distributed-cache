@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("../src/backend/server");
+const app = require("../server");
 
 describe("SCRUM-13 & SCRUM-14 Cache Tests", () => {
 
