@@ -9,14 +9,15 @@ app.use(cors());
 
 const cache = new Cache();
 
-// SCRUM-12: Health
+// SCRUM-12 / SCRUM-17: Health Endpoint
 app.get("/health", (req, res) => {
   return res.status(200).json({
     status: "ok",
-    service: "simple-cache",
+    service: "simple-cache",   // <-- REQUIRED FOR SCRUM-17 TESTS
     timestamp: new Date().toISOString(),
   });
 });
+
 
 // SCRUM-11: Insert
 app.post("/v1/cache/:key", (req, res) => {
