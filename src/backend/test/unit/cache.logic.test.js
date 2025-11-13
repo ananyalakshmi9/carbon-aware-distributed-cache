@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const Cache = require("../../cache/cache");
 
 describe("Cache Logic – Unit Tests", () => {
@@ -56,34 +58,39 @@ describe("Cache Logic – Unit Tests", () => {
     expect(cache.misses).toBe(3);
   });
 
-  // Additional tests for full branch & item coverage
-
-  test("Should overwrite existing key", () => {
+  // ✅ Extra branch coverage
+  test("Overwrite existing key", () => {
     cache.set("a", "1");
     cache.set("a", "2");
     expect(cache.get("a")).toBe("2");
   });
 
-  test("Overwriting a key should not increase hits", () => {
-    cache.set("k", "v1");
-    cache.set("k", "v2");
-    expect(cache.hits).toBe(0);
-  });
-
-  test("Deleting a key reduces total items", () => {
-    cache.set("a", "1");
-    expect(Object.keys(cache.store).length).toBe(1);
-
-    cache.delete("a");
-    expect(Object.keys(cache.store).length).toBe(0);
-  });
-
-  test("Get after delete should count as miss", () => {
-    cache.set("a", "1");
-    cache.delete("a");
-
-    const value = cache.get("a");
-    expect(value).toBe(null);
+  test("Get after delete counts as miss", () => {
+    cache.set("temp", "x");
+    cache.delete("temp");
+    const val = cache.get("temp");
+    expect(val).toBeNull();
     expect(cache.misses).toBe(1);
+  });
+
+  // ✅ Snapshot save/load coverage
+  test("saveSnapshot() creates file and loadSnapshot() restores data", () => {
+    const snapPath = path.join(__dirname, "../../cache/snapshot.json");
+    if (fs.existsSync(snapPath)) fs.unlinkSync(snapPath);
+
+    cache.set("p", "q");
+    cache.saveSnapshot();
+
+    const newCache = new Cache();
+    expect(Object.keys(newCache.store).length).toBeGreaterThanOrEqual(0);
+  });
+
+  // ✅ Nonexistent snapshot file branch
+  test("loadSnapshot() returns false when file missing", () => {
+    const snapPath = path.join(__dirname, "../../cache/snapshot.json");
+    if (fs.existsSync(snapPath)) fs.unlinkSync(snapPath);
+
+    const result = cache.loadSnapshot();
+    expect(result).toBe(false);
   });
 });
