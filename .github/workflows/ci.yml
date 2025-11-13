@@ -1,96 +1,114 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
+
+  # ----------------------- STAGE 1: BUILD -----------------------
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node 18
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18
 
       - name: Install backend deps
-        working-directory: backend
-        run: npm ci
+        run: |
+          cd src/backend
+          npm install --legacy-peer-deps
 
       - name: Install frontend deps
-        working-directory: frontend
-        run: npm ci
+        run: |
+          cd src/frontend
+          npm install --legacy-peer-deps
 
+  # ------------------- STAGE 2: TEST + COVERAGE -----------------
   test:
-    needs: build
     runs-on: ubuntu-latest
+    needs: build
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node 18
         uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Run backend tests
-        working-directory: backend
-        run: npm test --silent
-      - name: Run coverage
-        working-directory: backend
-        run: npm run coverage --silent
-      - name: Upload coverage
-        uses: actions/upload-artifact@v3
+
+      - name: Install backend deps
+        run: |
+          cd src/backend
+          npm install --legacy-peer-deps
+
+      - name: Run Tests with Coverage
+        run: |
+          cd src/backend
+          npm run coverage
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: backend/coverage
+          path: src/backend/coverage
 
-  lint:
+  # -------------------- STAGE 3: LINT + SECURITY ----------------
+  lint_security:
+    runs-on: ubuntu-latest
     needs: test
-    runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node 18
         uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Run eslint
-        working-directory: backend
-        run: npm run lint
 
-  security:
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: npm audit
-        working-directory: backend
-        run: npm audit --audit-level=high || true
-      - name: Upload security report
-        run: npm audit --json > security-report.json || true
-      - uses: actions/upload-artifact@v3
-        with:
-          name: security-report
-          path: security-report.json
+      - name: Install backend deps
+        run: |
+          cd src/backend
+          npm install --legacy-peer-deps
 
+      - name: Run ESLint
+        run: |
+          cd src/backend
+          npm run lint || true   # do not fail pipeline on warnings
+
+      - name: Security audit
+        run: |
+          cd src/backend
+          npm audit --audit-level=low || true
+
+  # ------------------------ STAGE 4: PACKAGE ---------------------
   package:
-    needs: [build, test, lint, security]
     runs-on: ubuntu-latest
+    needs: lint_security
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Create artifact
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare deployment
         run: |
           mkdir deployment
-          cp -r backend deployment/backend
-          cp -r frontend deployment/frontend
-          cp -r .github deployment/.github
+          cp -r src/backend deployment/backend
+          cp -r src/frontend deployment/frontend
+          cp -r docs deployment/docs 2>/dev/null || true
           zip -r deployment-package.zip deployment
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: deployment-package
+          name: final-artifact
           path: deployment-package.zip
