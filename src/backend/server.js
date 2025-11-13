@@ -31,6 +31,18 @@ app.post("/v1/cache/:key", (req, res) => {
   cache.set(key, value);
   return res.status(201).json({ message: "Value stored", key, value });
 });
+app.put("/v1/cache/:key", (req, res) => {
+  const { key } = req.params;
+  const { value } = req.body || {};
+
+  if (value === undefined || value === null) {
+    return res.status(400).json({ error: "Value is required" });
+  }
+
+  cache.set(key, value);
+  return res.status(200).json({ message: "Value updated", key, value });
+});
+
 
 // SCRUM-13: Retrieve
 app.get("/v1/cache/:key", (req, res) => {
