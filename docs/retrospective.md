@@ -4,14 +4,14 @@
 
 ### What Went Well?
 * We successfully implemented all core API features (Store, Get, Delete, TTL).
-* We got a basic 5-stage CI/CD pipeline running early in the project.
+* The team quickly adapted to the new tech stack (Go).
 
 ### What Didn't Go Well?
-* **Pipeline Complexity:** The CI/CD pipeline setup (`SCRUM-20`) took longer than estimated, which blocked some of the initial API testing.
+* **CI/CD Failure:** We attempted to set up the CI/CD pipeline (`SCRUM-20`), but we could not get the build and test stages to pass consistently by the end of the sprint. The pipeline remains broken.
 * **Review Speed:** We were slow to review each other's Pull Requests, causing code to sit in "In Review" for too long.
 
 ### Action Items for Sprint 2
-* Implement CI/CD quality gates (`SCRUM-22`, `-23`) immediately at the start of the sprint.
+* **Priority 1:** Fix the CI/CD pipeline immediately. We must get all 5 stages (Build, Test, Coverage, Lint, Security) green before merging new features.
 * Enforce a rule to review all open PRs within 12 hours.
 
 ---
@@ -21,8 +21,8 @@
 * **Attendees:** Amrutha, Ananya A C, Nidhi, Ananya L, Kusumitha
 
 ### What Went Well?
-* **High Velocity:** We successfully implemented all 9 advanced features (Eviction, Persistence, Auth, etc.) in a very short timeframe.
-* **Quality Gates:** We successfully configured the pipeline to enforce 75% code coverage, ensuring high code quality despite the speed.
+* **Pipeline Success:** We successfully fixed the CI/CD pipeline issues from Sprint 1. We now have a fully automated 5-stage pipeline that enforces quality gates (75% coverage) on every PR.
+* **High Velocity:** We completed all 9 advanced features (Eviction, Persistence, Auth, etc.) in a very short timeframe.
 * **Collaboration:** All team members contributed effectively to the codebase, maintaining good commit discipline throughout the sprint.
 
 ### What Didn't Go Well?
