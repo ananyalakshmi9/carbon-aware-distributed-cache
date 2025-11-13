@@ -1,12 +1,24 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
+const PORT = 4000;
+
+app.use(cors());
 app.use(express.json());
 
+// ✅ Health check endpoint
 app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.status(200).json({
+    status: "UP",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-const PORT = 4000;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+// Sample route to verify backend is running
+app.get("/", (req, res) => {
+  res.status(200).send("Simple Cache Service is running!");
+});
 
-module.exports = app;
+app.listen(PORT, () => {
+  console.log(`✅ Backend service running on port ${PORT}`);
+});
