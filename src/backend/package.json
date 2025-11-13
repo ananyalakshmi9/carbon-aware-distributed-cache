@@ -1,11 +1,23 @@
 {
   "name": "simple-cache-backend",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "server.js",
+
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "jest --runInBand",
+    "coverage": "jest --coverage --runInBand",
+    "lint": "eslint ."
   },
+
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.3",
+    "eslint": "^8.53.0"
   }
 }
