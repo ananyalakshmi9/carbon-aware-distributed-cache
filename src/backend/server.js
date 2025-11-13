@@ -16,7 +16,7 @@ app.get("/health", (req, res) => {
   return res.status(200).json({
     status: "ok",
     service: "simple-cache",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -31,6 +31,7 @@ app.get("/v1/cache/:key", (req, res) => {
   if (value === null) {
     return res.status(404).json({ error: "Key not found" });
   }
+
   return res.status(200).json({ key, value });
 });
 
@@ -50,11 +51,25 @@ app.delete("/v1/cache/:key", (req, res) => {
 });
 
 // ---------------------------------------------
-// SERVER START
+// SCRUM-25: /metrics Endpoint
 // ---------------------------------------------
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Simple cache listening on port ${PORT}`);
+app.get("/metrics", (req, res) => {
+  res.status(200).json({
+    hits: cache.hits,
+    misses: cache.misses,
+    items: Object.keys(cache.store).length,
+    expired: cache.expired,
+  });
 });
+
+// ---------------------------------------------
+// DO NOT START SERVER DURING TESTS
+// ---------------------------------------------
+if (require.main === module) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`Simple cache listening on port ${PORT}`);
+  });
+}
 
 module.exports = app;
