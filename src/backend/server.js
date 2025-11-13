@@ -9,9 +9,7 @@ app.use(cors());
 
 const cache = new Cache();
 
-// ------------------------------------------------
-// SCRUM-12: Health Endpoint
-// ------------------------------------------------
+// SCRUM-12: Health
 app.get("/health", (req, res) => {
   return res.status(200).json({
     status: "ok",
@@ -20,9 +18,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// ------------------------------------------------
-// SCRUM-11: Insert/Update Cache Value (needed for tests)
-// ------------------------------------------------
+// SCRUM-11: Insert
 app.post("/v1/cache/:key", (req, res) => {
   const { key } = req.params;
   const { value } = req.body;
@@ -35,9 +31,7 @@ app.post("/v1/cache/:key", (req, res) => {
   return res.status(201).json({ message: "Value stored", key, value });
 });
 
-// ------------------------------------------------
-// SCRUM-13: Retrieve Cache Value
-// ------------------------------------------------
+// SCRUM-13: Retrieve
 app.get("/v1/cache/:key", (req, res) => {
   const { key } = req.params;
   const value = cache.get(key);
@@ -49,9 +43,7 @@ app.get("/v1/cache/:key", (req, res) => {
   return res.status(200).json({ key, value });
 });
 
-// ------------------------------------------------
-// SCRUM-14: Delete Cache Key
-// ------------------------------------------------
+// SCRUM-14: Delete
 app.delete("/v1/cache/:key", (req, res) => {
   const { key } = req.params;
   const deleted = cache.delete(key);
@@ -63,21 +55,17 @@ app.delete("/v1/cache/:key", (req, res) => {
   return res.status(200).json({ message: "Key deleted", key });
 });
 
-// ------------------------------------------------
-// SCRUM-25: Metrics Endpoint
-// ------------------------------------------------
+// SCRUM-25: Metrics
 app.get("/metrics", (req, res) => {
   res.status(200).json({
-    hits: cache.hits,
-    misses: cache.misses,
+    hits: cache.hits ?? 0,
+    misses: cache.misses ?? 0,
     items: Object.keys(cache.store).length,
-    expired: cache.expired,
+    expired: cache.expired ?? 0,
   });
 });
 
-// ------------------------------------------------
-// Start Server Only When Not Testing
-// ------------------------------------------------
+// Start server only outside tests
 if (require.main === module) {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () =>
