@@ -56,7 +56,7 @@ describe("Cache Logic – Unit Tests", () => {
     expect(cache.misses).toBe(3);
   });
 
-  // 🔥 NEW TESTS BELOW (for full branch coverage)
+  // Additional tests for full branch & item coverage
 
   test("Should overwrite existing key", () => {
     cache.set("a", "1");
