@@ -10,52 +10,76 @@ function App() {
 
   const apiBase = process.env.REACT_APP_API_BASE || "http://localhost:4000";
 
-  // --- Health Check ---
+  // --- HEALTH CHECK ---
   const checkHealth = async () => {
     const r = await fetch(`${apiBase}/health`);
     const j = await r.json();
     setHealth(j.status);
   };
 
-  // --- Metrics ---
+  // --- METRICS ---
   const loadMetrics = async () => {
     const r = await fetch(`${apiBase}/metrics`);
     const j = await r.json();
     setMetrics(JSON.stringify(j, null, 2));
   };
 
-  // --- PUT ---
+  // --- PUT (Insert/Update) ---
   const putKey = async () => {
-    const url = `${apiBase}/v1/cache/${encodeURIComponent(key)}${
-      ttl ? `?ttl=${encodeURIComponent(ttl)}` : ""
-    }`;
+    if (!key.trim()) return setResp("Key is required");
+    if (!val.trim()) return setResp("Value is required");
+
+    const url = `${apiBase}/v1/cache/${encodeURIComponent(key)}`;
 
     const r = await fetch(url, {
       method: "PUT",
-      body: val
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ value: val }) // IMPORTANT FIX
     });
-    const j = await r.json();
-    setResp(`PUT '${key}' OK (Status: ${r.status})`);
+
+    setResp(`PUT '${key}' → Status ${r.status}`);
   };
 
   // --- GET ---
   const getKey = async () => {
+    if (!key.trim()) return setResp("Key is required");
+
     const url = `${apiBase}/v1/cache/${encodeURIComponent(key)}`;
     const r = await fetch(url);
 
     if (r.status === 200) {
-      const blob = await r.blob();
-      const text = await blob.text();
-      setResp(`GET '${key}' → ${text}`);
+      const j = await r.json();
+      setResp(`GET '${key}' → ${JSON.stringify(j.value)}`);
     } else {
-      setResp("Key not found.");
+      setResp(`GET '${key}' → Key not found`);
+    }
+  };
+
+  // --- DELETE ---
+  const deleteKey = async () => {
+    if (!key.trim()) return setResp("Key is required");
+
+    const url = `${apiBase}/v1/cache/${encodeURIComponent(key)}`;
+    const r = await fetch(url, { method: "DELETE" });
+
+    if (r.status === 200) {
+      setResp(`DELETE '${key}' → deleted`);
+    } else {
+      setResp(`DELETE '${key}' → Key not found`);
     }
   };
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", padding: 20 }}>
-      {/* BLUE HEADER */}
-      <div style={{ background: "#0d6efd", padding: 20, color: "white", borderRadius: 8 }}>
+    <div style={{ fontFamily: "Arial", padding: 20 }}>
+      {/* HEADER */}
+      <div style={{
+        background: "#0d6efd",
+        padding: 20,
+        color: "white",
+        borderRadius: 8
+      }}>
         <h1>Cache Service Dashboard</h1>
       </div>
 
@@ -75,19 +99,18 @@ function App() {
         >
           Check Health
         </button>
+
         <p style={{ marginTop: 10 }}>
           Status:{" "}
           <strong>
-            {health === "ok" || health === "OK" ? (
-              <span style={{ color: "green" }}>OK ●</span>
-            ) : (
-              <span style={{ color: "red" }}>Offline ●</span>
-            )}
+            {health === "ok"
+              ? <span style={{ color: "green" }}>OK ●</span>
+              : <span style={{ color: "red" }}>Offline ●</span>}
           </strong>
         </p>
       </section>
 
-      {/* LIVE METRICS */}
+      {/* METRICS */}
       <section style={{ marginTop: 20 }}>
         <h2>Live Metrics</h2>
         <button
@@ -104,17 +127,13 @@ function App() {
           Refresh Metrics
         </button>
 
-        <pre
-          style={{
-            background: "#222",
-            color: "#eee",
-            padding: 15,
-            borderRadius: 6,
-            marginTop: 10,
-            fontSize: 14,
-            overflowX: "auto"
-          }}
-        >
+        <pre style={{
+          background: "#222",
+          color: "#eee",
+          padding: 15,
+          borderRadius: 6,
+          marginTop: 10
+        }}>
           {metrics || "No metrics loaded yet."}
         </pre>
       </section>
@@ -123,19 +142,19 @@ function App() {
       <section style={{ marginTop: 20 }}>
         <h2>Cache Explorer</h2>
 
+        {/* GET */}
         <div style={{ display: "flex", gap: 10 }}>
           <input
+            placeholder="key"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
             style={{
               padding: 8,
               borderRadius: 4,
               border: "1px solid #ccc",
               flex: 1
             }}
-            placeholder="key"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
           />
-
           <button
             onClick={getKey}
             style={{
@@ -151,41 +170,27 @@ function App() {
           </button>
         </div>
 
+        {/* PUT */}
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
           <input
-            style={{
-              padding: 8,
-              borderRadius: 4,
-              border: "1px solid #ccc",
-              flex: 1
-            }}
             placeholder="key"
             value={key}
             onChange={(e) => setKey(e.target.value)}
+            style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc", flex: 1 }}
           />
 
           <input
-            style={{
-              padding: 8,
-              borderRadius: 4,
-              border: "1px solid #ccc",
-              flex: 1
-            }}
             placeholder="value"
             value={val}
             onChange={(e) => setVal(e.target.value)}
+            style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc", flex: 1 }}
           />
 
           <input
-            style={{
-              padding: 8,
-              borderRadius: 4,
-              border: "1px solid #ccc",
-              width: "120px"
-            }}
-            placeholder="TTL"
+            placeholder="TTL (not used)"
             value={ttl}
             onChange={(e) => setTtl(e.target.value)}
+            style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc", width: 120 }}
           />
 
           <button
@@ -203,17 +208,43 @@ function App() {
           </button>
         </div>
 
+        {/* DELETE */}
+        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+          <input
+            placeholder="key"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            style={{
+              padding: 8,
+              borderRadius: 4,
+              border: "1px solid #ccc",
+              flex: 1
+            }}
+          />
+          <button
+            onClick={deleteKey}
+            style={{
+              background: "red",
+              color: "white",
+              border: "none",
+              padding: "10px 15px",
+              borderRadius: 6,
+              cursor: "pointer"
+            }}
+          >
+            DELETE
+          </button>
+        </div>
+
+        {/* RESULT */}
         <h3 style={{ marginTop: 20 }}>Result:</h3>
-        <pre
-          style={{
-            background: "#222",
-            color: "#eee",
-            padding: 15,
-            borderRadius: 6,
-            marginTop: 10,
-            fontSize: 14
-          }}
-        >
+        <pre style={{
+          background: "#222",
+          color: "#eee",
+          padding: 15,
+          borderRadius: 6,
+          marginTop: 10
+        }}>
           {resp}
         </pre>
       </section>
