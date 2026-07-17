@@ -1,177 +1,117 @@
-# 🚀 Simple Caching Service
+# 🌿 Carbon-Aware Distributed Cache
 
-**Project ID:** P76  
-**Course:** UE23CS341A  
-**Academic Year:** 2025  
-**Semester:** 5th Sem  
-**Campus:** EC  
-**Branch:** CSE  
-**Section:** A  
-**Team:** Visionaries  
+A sustainable, spatiotemporal distributed caching service designed to minimize energy grid carbon footprints. The system dynamically routes and evicts keys based on regional diurnal grid carbon intensity forecasts, client-defined computation weights, and local capacity constraints.
 
 ---
 
-## 📋 Project Description
+## 📋 System Architecture
 
-An in-memory caching service that provides APIs to store, retrieve, and delete key-value pairs with time-to-live (TTL) expiration.  
-This repository includes both backend (Node.js + Express) and frontend (React) code along with a complete CI/CD pipeline.
+The cache consists of three core components:
+1. **Hash Ring Coordinator:** Proxies client requests using a `SHA-256` consistent hashing ring with configurable virtual nodes (default: 150) for load distribution.
+2. **Region Caching Nodes:** Local Express-based cache processes that track logical clocks, access frequencies, and client recompute costs.
+3. **Diurnal Carbon Service:** Generates simulated hourly grid carbon intensity (gCO₂/kWh) curves based on regional profiles (`us-west` solar peak, `eu-central` wind peak, `us-east` fossil-heavy baseload) or hooks into the live **Electricity Maps API**.
 
----
-
-## 👨‍💻 Development Team (Visionaries)
-
-- [@ananyalakshmi9](https://github.com/ananyalakshmi9) — Scrum Master  
-- [@nidhi-c-r](https://github.com/nidhi-c-r) — Developer  
-- [@AmruthaPJ](https://github.com/AmruthaPJ) — Developer  
-- [@ananyaac2104](https://github.com/ananyaac2104) — Developer  
-- [@pes2ug22cs278](https://github.com/pes2ug22cs278) — Developer  
-
----
-
-## 👩‍🏫 Teaching Assistants
-
-- [@itsjiyapatel](https://github.com/itsjiyapatel)  
-- [@Greesh-SE](https://github.com/Greesh-SE)  
-- [@Siri2512](https://github.com/Siri2512)  
-- [@Hurry-sh](https://github.com/Hurry-sh)  
-- [@pes2ug22cs137](https://github.com/pes2ug22cs137)
+```
+                   [ Client / Simulator ]
+                             │
+                             ▼
+               [ Consistent Hash Coordinator ]
+                /            │            \
+         (us-east)       (us-west)     (eu-central)
+             │               │              │
+       [Cache Node 1]  [Cache Node 2]  [Cache Node 3]
+```
 
 ---
 
-## 👨‍⚖️ Faculty Supervisor
+## ✨ Key Features
 
-- [@Animesh](https://github.com/Animesh)
-
----
-
-## ⚙️ CI/CD Pipeline (SCRUM-27)
-
-This project uses **GitHub Actions** for automated Continuous Integration and Deployment (CI/CD).
-
-### 🧩 Pipeline Overview
-
-The pipeline is defined in `.github/workflows/ci.yml` and includes the following **5 stages**:
-
-1. **Install** — Installs dependencies for both frontend and backend  
-2. **Lint** — Runs ESLint to check for code quality  
-3. **Build** — Builds the React frontend  
-4. **Test** — Executes Jest tests for backend with coverage reports  
-5. **Package** — Packages the project into a deployable zip artifact  
-
-### 🧪 Test Coverage
-
-After running the test stage, a coverage report is generated and uploaded as an artifact.  
-You can view it in **Actions → Workflow Run → Artifacts → backend-coverage**.
+* **Cost-Weighted Eviction Scoring:** Moves beyond standard LRU to prioritize retaining high-cost values (e.g., expensive database computations):
+  $$\text{Score} = (w_{\text{rec}} \times \text{Recency}) + (w_{\text{freq}} \times \text{Frequency}) + (w_{\text{cost}} \times \text{RecomputeCost})$$
+* **Capacity-Balanced Carbon Placement:** To prevent the "herd effect" (where all writes overload a single green node during grid clean spells), the coordinator filters out candidate nodes exceeding $80\%$ of their capacity.
+* **Dual-Threshold Rebalancing:** Periodically scans keys and migrates them to cleaner grids if the carbon savings offset the migration cost. Uses a relaxed $90\%$ occupancy threshold for migration targets to resolve congestion deadlocks.
+* **Comparative Evaluation Harness:** Simulates 24 hours of Zipfian workload traffic ($\alpha = 1.0$) across five caching topologies to benchmark carbon footprints, hit rates, and latencies.
+* **React Dashboard:** Features real-time cluster metrics, node capacity indicators, time sliders, manual rebalance triggers, and a live decision log feed.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm (v8 or higher)
+* Node.js (v18 or higher)
+* npm (v8 or higher)
 
-### Installation
-
+### 1. Installation
+Clone the repository and install dependencies:
 ```bash
 # Clone the repository
-git clone https://github.com/pestechnology/PESU_EC_CSE_A_P76_Simple_Caching_Service_visionaries.git
-cd PESU_EC_CSE_A_P76_Simple_Caching_Service_visionaries
-```
+git clone https://github.com/ananyalakshmi9/simple-caching-machine.git
+cd simple-caching-machine
 
 # Install backend dependencies
-```bash
 cd src/backend
 npm install
-```
 
 # Install frontend dependencies
-```bash
 cd ../frontend
 npm install
 ```
 
-Run the Application
-Backend
+### 2. Start the Cluster Locally
+You can launch a full local cluster (3 nodes + 1 coordinator) using the convenience script from the root folder:
 ```bash
-cd src/backend
-npm start
+# Start cluster
+./start-cluster.sh
 ```
 
-Frontend
+### 3. Open the React Dashboard
+In a separate terminal, start the React dev server:
 ```bash
 cd src/frontend
 npm start
 ```
-# 📁 Project Structure
-```bash
-PESU_EC_CSE_A_P76_Simple_Caching_Service_visionaries/
-├── src/
-│   ├── backend/
-│   │   ├── cache/          # Cache logic
-│   │   ├── test/           # Backend test cases
-│   │   ├── server.js       # Express server
-│   │   └── package.json
-│   ├── frontend/
-│   │   ├── src/            # React source code
-│   │   └── package.json
-│
-├── .github/
-│   └── workflows/ci.yml    # CI/CD pipeline definition
-│
-├── README.md
-└── package-lock.json
-```
-# 🧠 Development Guidelines
-Branching Strategy
-main → Production-ready branch
+Open **`http://localhost:3000`** in your browser to view the live dashboard.
 
-develop → Active development branch
+---
 
-feature/* → Feature-specific branches
+## 🧪 Testing & Evaluation
 
-bugfix/* → Bug fix branches
-
-Commit Message Convention
-Follow the Conventional Commits format:
-
-```vbnet
-Copy code
-feat: new feature
-fix: bug fix
-docs: documentation changes
-style: formatting changes (no logic)
-refactor: code refactoring
-test: test-related changes
-```
-Example:
-
-```scss
-Copy code
-feat(SCRUM-25): add /metrics endpoint for cache statistics
-```
-# 🧪 Testing
-Run backend tests locally:
-
+### Run Backend Tests
+Run the Jest integration and unit test suites:
 ```bash
 cd src/backend
 npm test
 ```
-To view coverage:
+
+### Run the Evaluation Harness
+To execute the workload generator and benchmark the five system configurations:
+```bash
+cd src/backend
+node simulate.js
+```
+The script outputs the comparative table to your console and exports raw metrics to `docs/sim-results.csv` and `docs/sim-results.json`.
+
+---
+
+## 📁 Project Structure
 
 ```bash
-npm run test:coverage
+simple-caching-machine/
+├── src/
+│   ├── backend/
+│   │   ├── cache/            # Local cache class & snapshots
+│   │   ├── test/             # Unit and integration test suites
+│   │   ├── server.js         # Local cache node Express API
+│   │   ├── coordinator.js    # Cluster routing & rebalancing proxy
+│   │   ├── hashRing.js       # Consistent hashing ring implementation
+│   │   ├── carbonData.js     # Diurnal curves & API connector
+│   │   └── simulate.js       # Workload simulator & evaluation harness
+│   │
+│   └── frontend/
+│       ├── src/              # React App dashboard components
+│       └── package.json
+│
+├── docs/                     # Evaluation results and reports
+├── start-cluster.sh          # Local processes launcher script
+└── README.md
 ```
-Coverage report will be saved under /coverage/lcov-report/.
-
-# 📚 Documentation
-API Documentation
-
-Developer Guide
-
-User Guide
-
-# 📄 License
-This project was developed for educational purposes as part of
-UE23CS341A – Software Engineering (2025 Batch) at PES University.
-# carbon-aware-distributed-cache
