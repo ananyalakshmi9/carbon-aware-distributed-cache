@@ -1,0 +1,6 @@
+Configuration,Hit Rate (%),Avg Latency (ms),p99 Latency (ms),Total CO2 (g),Migrations
+1. Consistent Hashing + LRU (Baseline),77.5,0.56,2.02,350876,0
+2. Cost-Aware Eviction + Plain Hashing,77.17,0.68,3.15,305042,0
+3. Carbon-Aware Placement + Eviction + Rebalancing,26,0.9,2.19,1081862,23
+4. Carbon-Aware Placement + Eviction + Rebalancing (Capacity-Balanced),71.17,0.59,1.97,312545,2
+5. Carbon-Aware Placement + Eviction + Rebalancing (Dual-Threshold),71.17,0.58,1.87,312545,2

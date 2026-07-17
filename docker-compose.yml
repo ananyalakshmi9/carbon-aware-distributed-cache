@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  node-us-east:
+    build:
+      context: ./src/backend
+    command: node server.js
+    environment:
+      - PORT=4001
+      - NODE_PORT=4001
+      - NODE_REGION=us-east
+    ports:
+      - "4001:4001"
+
+  node-us-west:
+    build:
+      context: ./src/backend
+    command: node server.js
+    environment:
+      - PORT=4002
+      - NODE_PORT=4002
+      - NODE_REGION=us-west
+    ports:
+      - "4002:4002"
+
+  node-eu-central:
+    build:
+      context: ./src/backend
+    command: node server.js
+    environment:
+      - PORT=4003
+      - NODE_PORT=4003
+      - NODE_REGION=eu-central
+    ports:
+      - "4003:4003"
+
+  coordinator:
+    build:
+      context: ./src/backend
+    command: node coordinator.js
+    environment:
+      - PORT=4000
+      - COORDINATOR_NODES=http://node-us-east:4001,http://node-us-west:4002,http://node-eu-central:4003
+    ports:
+      - "4000:4000"
+    depends_on:
+      - node-us-east
+      - node-us-west
+      - node-eu-central

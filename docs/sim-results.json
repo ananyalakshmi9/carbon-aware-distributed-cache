@@ -1,0 +1,42 @@
+[
+  {
+    "Configuration": "1. Consistent Hashing + LRU (Baseline)",
+    "Hit Rate (%)": 77.5,
+    "Avg Latency (ms)": 0.56,
+    "p99 Latency (ms)": 2.02,
+    "Total CO2 (g)": 350876,
+    "Migrations": 0
+  },
+  {
+    "Configuration": "2. Cost-Aware Eviction + Plain Hashing",
+    "Hit Rate (%)": 77.17,
+    "Avg Latency (ms)": 0.68,
+    "p99 Latency (ms)": 3.15,
+    "Total CO2 (g)": 305042,
+    "Migrations": 0
+  },
+  {
+    "Configuration": "3. Carbon-Aware Placement + Eviction + Rebalancing",
+    "Hit Rate (%)": 26,
+    "Avg Latency (ms)": 0.9,
+    "p99 Latency (ms)": 2.19,
+    "Total CO2 (g)": 1081862,
+    "Migrations": 23
+  },
+  {
+    "Configuration": "4. Carbon-Aware Placement + Eviction + Rebalancing (Capacity-Balanced)",
+    "Hit Rate (%)": 71.17,
+    "Avg Latency (ms)": 0.59,
+    "p99 Latency (ms)": 1.97,
+    "Total CO2 (g)": 312545,
+    "Migrations": 2
+  },
+  {
+    "Configuration": "5. Carbon-Aware Placement + Eviction + Rebalancing (Dual-Threshold)",
+    "Hit Rate (%)": 71.17,
+    "Avg Latency (ms)": 0.58,
+    "p99 Latency (ms)": 1.87,
+    "Total CO2 (g)": 312545,
+    "Migrations": 2
+  }
+]

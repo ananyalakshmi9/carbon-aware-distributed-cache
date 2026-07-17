@@ -1,0 +1,22 @@
+{
+  "store": {
+    "test": {
+      "value": "123",
+      "recomputeCost": 1,
+      "lastAccess": 1,
+      "accessCount": 1
+    },
+    "a": {
+      "value": "1",
+      "recomputeCost": 1,
+      "lastAccess": 2,
+      "accessCount": 1
+    }
+  },
+  "hits": 0,
+  "misses": 0,
+  "expired": 0,
+  "evictions": 0,
+  "logicalClock": 2,
+  "simulatedHour": null
+}
