@@ -1,6 +1,7 @@
 const { spawn } = require("child_process");
 const path = require("path");
 const request = require("supertest");
+const fs = require("fs");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -58,6 +59,22 @@ describe("Coordinator Integration Tests", () => {
 
   beforeAll(async () => {
     // Clean up any potential files or processes
+    const logPath = path.join(__dirname, "../../decision-log.json");
+    if (fs.existsSync(logPath)) {
+      try {
+        fs.unlinkSync(logPath);
+      } catch (e) {}
+    }
+    const cacheDir = path.join(__dirname, "../../cache");
+    for (const port of [node1Port, node2Port, node3Port]) {
+      const snapPath = path.join(cacheDir, `snapshot-${port}.json`);
+      if (fs.existsSync(snapPath)) {
+        try {
+          fs.unlinkSync(snapPath);
+        } catch (e) {}
+      }
+    }
+
     node1 = spawnNode(node1Port, "us-east");
     node2 = spawnNode(node2Port, "us-west");
     node3 = spawnNode(node3Port, "eu-central");
