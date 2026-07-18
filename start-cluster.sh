@@ -3,6 +3,12 @@
 # Terminate all processes started by this script on exit
 trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
+# Load environment variables from .env file if it exists
+if [ -f .env ]; then
+  echo "Loading configuration from .env file..."
+  export $(grep -v '^#' .env | xargs)
+fi
+
 echo "Starting cache nodes..."
 NODE_PORT=4001 NODE_REGION=us-east PORT=4001 node src/backend/server.js &
 NODE_PORT=4002 NODE_REGION=us-west PORT=4002 node src/backend/server.js &
