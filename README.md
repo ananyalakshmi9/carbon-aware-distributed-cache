@@ -1,4 +1,4 @@
-# 🌿 Carbon-Aware Distributed Cache
+#Carbon-Aware Distributed Cache
 
 A sustainable, spatiotemporal distributed caching service designed to minimize energy grid carbon footprints. The system dynamically routes and evicts keys based on regional diurnal grid carbon intensity forecasts, client-defined computation weights, and local capacity constraints.
 
@@ -24,7 +24,7 @@ The cache consists of three core components:
 
 ---
 
-## ✨ Key Features
+##Key Features
 
 * **Cost-Weighted Eviction Scoring:** Moves beyond standard LRU to prioritize retaining high-cost values (e.g., expensive database computations):
   $$\text{Score} = (w_{\text{rec}} \times \text{Recency}) + (w_{\text{freq}} \times \text{Frequency}) + (w_{\text{cost}} \times \text{RecomputeCost})$$
@@ -35,7 +35,7 @@ The cache consists of three core components:
 
 ---
 
-## 🚀 Getting Started
+##Getting Started
 
 ### Prerequisites
 * Node.js (v18 or higher)
@@ -74,7 +74,7 @@ Open **`http://localhost:3000`** in your browser to view the live dashboard.
 
 ---
 
-## 🧪 Testing & Evaluation
+##Testing & Evaluation
 
 ### Run Backend Tests
 Run the Jest integration and unit test suites:
@@ -93,7 +93,7 @@ The script outputs the comparative table to your console and exports raw metrics
 
 ---
 
-## 📁 Project Structure
+##Project Structure
 
 ```bash
 simple-caching-machine/
